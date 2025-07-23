@@ -1,0 +1,124 @@
+# application.yml
+spring:
+  application:
+    name: VAAP
+  
+  datasource:
+    url: jdbc:postgresql://localhost:5432/promptbuilder
+    username: ${DB_USERNAME:promptuser}
+    password: ${DB_PASSWORD:promptpass}
+    driver-class-name: org.postgresql.Driver
+  
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+    show-sql: false
+  
+  cache:
+    type: caffeine
+    caffeine:
+      spec: maximumSize=1000,expireAfterWrite=5m
+  
+  security:
+    user:
+      name: admin
+      password: ${ADMIN_PASSWORD:admin123}
+
+# Elasticsearch configuration
+elasticsearch:
+  host: ${ES_HOST:localhost}
+  port: ${ES_PORT:9200}
+  username: ${ES_USERNAME:elastic}
+  password: ${ES_PASSWORD:changeme}
+  scheme: ${ES_SCHEME:http}
+  index:
+    prompts: prompts_v1
+
+# HashiCorp Vault configuration
+vault:
+  uri: ${VAULT_URI:http://localhost:8200}
+  token: ${VAULT_TOKEN}
+  secret:
+    path: secret/data/llm-providers
+
+# LLM Provider configurations
+llm:
+  providers:
+    openai:
+      rate-limit: 1000
+      timeout: 30s
+    anthropic:
+      rate-limit: 500
+      timeout: 45s
+    cohere:
+      rate-limit: 300
+      timeout: 30s
+  
+  # Default retry configuration
+  retry:
+    max-attempts: 3
+    initial-interval: 1s
+    multiplier: 2
+    max-interval: 10s
+
+# Async configuration
+async:
+  testing:
+    pool-size: 10
+    max-pool-size: 20
+    queue-capacity: 200
+  llm:
+    pool-size: 20
+    max-pool-size: 50
+    queue-capacity: 500
+
+# Monitoring
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+    tags:
+      application: ${spring.application.name}
+
+# Logging
+logging:
+  level:
+    root: INFO
+    com.example.promptbuilder: DEBUG
+    org.springframework.security: DEBUG
+    co.elastic.clients: INFO
+    org.springframework.vault: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+  file:
+    name: logs/prompt-builder.log
+  logback:
+    rollingpolicy:
+      max-file-size: 10MB
+      max-history: 30
+
+# API Documentation
+springdoc:
+  api-docs:
+    path: /api/docs
+  swagger-ui:
+    path: /api/swagger-ui.html
+
+# Server configuration
+server:
+  port: ${SERVER_PORT:8080}
+  compression:
+    enabled: true
+  error:
+    include-message: always
+    include-binding-errors: always
