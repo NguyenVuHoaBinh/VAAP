@@ -122,3 +122,72 @@ server:
   error:
     include-message: always
     include-binding-errors: always
+
+# Updated application.yml with Flyway configuration
+spring:
+  application:
+    name: prompt-builder
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/promptbuilder
+    username: ${DB_USERNAME:promptuser}
+    password: ${DB_PASSWORD:promptpass}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 5
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+
+  jpa:
+    hibernate:
+      ddl-auto: validate  # Changed from 'update' to 'validate' since we're using Flyway
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+    show-sql: false
+
+  # Flyway configuration
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    baseline-version: 0
+    locations: classpath:db/migration
+    table: flyway_schema_history
+    placeholder-replacement: false
+    sql-migration-prefix: V
+    sql-migration-separator: __
+    sql-migration-suffixes: .sql
+    validate-on-migrate: true
+    clean-disabled: true  # Safety feature for production
+    out-of-order: false
+
+  cache:
+    type: caffeine
+    caffeine:
+      spec: maximumSize=1000,expireAfterWrite=5m
+
+  security:
+    user:
+      name: admin
+      password: ${ADMIN_PASSWORD:admin123}
+
+# Rest of the configuration remains the same...
+elasticsearch:
+  host: ${ES_HOST:localhost}
+  port: ${ES_PORT:9200}
+  username: ${ES_USERNAME:elastic}
+  password: ${ES_PASSWORD:changeme}
+  scheme: ${ES_SCHEME:http}
+  index:
+    prompts: prompts_v1
+
+vault:
+  uri: ${VAULT_URI:http://localhost:8200}
+  token: ${VAULT_TOKEN}
+  secret:
+    path: secret/data/llm-providers
+
+# ... rest of configuration
